@@ -29,7 +29,7 @@ namespace ZendeskApi_v2.Requests
 
     public interface ITickets : ICore
     {
-        
+
 #if SYNC
         GroupTicketFormResponse GetTicketForms();
         IndividualTicketFormResponse CreateTicketForm(TicketForm ticketForm);
@@ -96,6 +96,8 @@ namespace ZendeskApi_v2.Requests
         IndividualTicketMetricResponse GetTicketMetricsForTicket(long ticket_id);
         IndividualTicketResponse ImportTicket(TicketImport ticket);
         JobStatusResponse BulkImportTickets(IEnumerable<TicketImport> tickets);
+
+        GroupTicketResponse GetTicketsByExternalId(string externalId, int? perPage = null, int? page = null, string sortCol = null, bool? sortAscending = null, TicketSideLoadOptionsEnum sideLoadOptions = TicketSideLoadOptionsEnum.None);
 #endif
 
 #if ASYNC
@@ -159,6 +161,8 @@ namespace ZendeskApi_v2.Requests
         Task<IndividualTicketMetricResponse> GetTicketMetricsForTicketAsync(long ticket_id);
         Task<IndividualTicketResponse> ImportTicketAsync(TicketImport ticket);
         Task<JobStatusResponse> BulkImportTicketsAsync(IEnumerable<TicketImport> tickets);
+
+        Task<GroupTicketResponse> GetTicketsByExternalIdAsync(string externalId, int? perPage = null, int? page = null, string sortCol = null, bool? sortAscending = null, TicketSideLoadOptionsEnum sideLoadOptions = TicketSideLoadOptionsEnum.None);
 #endif
     }
 
@@ -482,6 +486,12 @@ namespace ZendeskApi_v2.Requests
             return GenericDelete(string.Format("suspended_tickets/destroy_many.json?ids={0}", ids.ToCsv()));
         }
 
+        public GroupTicketResponse GetTicketsByExternalId(string externalId, int? perPage = null, int? page = null, string sortCol = null, bool? sortAscending = null, TicketSideLoadOptionsEnum sideLoadOptions = TicketSideLoadOptionsEnum.None)
+        {
+            string resource = GetResourceStringWithSideLoadOptionsParam(_tickets + ".json?external_id=" + externalId, sideLoadOptions);
+            return GenericPagedSortedGet<GroupTicketResponse>(resource, perPage, page, sortCol, sortAscending);
+        }
+
         #region TicketMetrics
         public GroupTicketMetricResponse GetAllTicketMetrics()
         {
@@ -784,6 +794,12 @@ namespace ZendeskApi_v2.Requests
 
 
         #endregion
+
+        public async Task<GroupTicketResponse> GetTicketsByExternalIdAsync(string externalId, int? perPage = null, int? page = null, string sortCol = null, bool? sortAscending = null, TicketSideLoadOptionsEnum sideLoadOptions = TicketSideLoadOptionsEnum.None)
+        {
+            string resource = GetResourceStringWithSideLoadOptionsParam(_tickets + ".json?external_id=" + externalId, sideLoadOptions);
+            return await GenericPagedSortedGetAsync<GroupTicketResponse>(resource, perPage, page, sortCol, sortAscending);
+        }
 #endif
 
         private string GetResourceStringWithSideLoadOptionsParam(string resource, TicketSideLoadOptionsEnum sideLoadOptions)
